@@ -20,7 +20,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="rounded-2xl bg-white p-10 shadow-sm">
           <p className="text-sm font-semibold text-emerald-700">
-            Support local artisans • Shop handmade
+            Support Local Artisans • Shop Handmade
           </p>
 
           <h2 className="mt-3 text-4xl font-bold leading-tight">
@@ -53,7 +53,7 @@ export default function Home() {
         </p>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {["Jewelry", "Home Decor", "Art Prints", "Skincare"].map((item) => (
+          {["Jewelry", "Home Decor", "Art Prints", "Skincare Products"].map((item) => (
             <div
               key={item}
               className="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
