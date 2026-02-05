@@ -7,10 +7,11 @@ export default function Navbar() {
         </h1>
 
         <nav className="flex gap-6 text-sm font-medium text-slate-700">
-          <a href="#" className="hover:text-slate-900">Marketplace</a>
-          <a href="#" className="hover:text-slate-900">Sellers</a>
-          <a href="#" className="hover:text-slate-900">About</a>
+          <a href="/" className="hover:text-slate-900">Home</a>
+          <a href="/marketplace" className="hover:text-slate-900">Marketplace</a>
+          <a href="/sellers" className="hover:text-slate-900">Sellers</a>
         </nav>
+
       </div>
     </header>
   );
