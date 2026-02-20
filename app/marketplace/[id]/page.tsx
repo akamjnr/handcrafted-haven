@@ -1,38 +1,20 @@
-import type { Metadata } from "next";
+import AddToCartButton from "../../../components/AddToCartButton";
 import Navbar from "../../../components/navbar";
 import Footer from "../../../components/footer";
 import ReviewSection from "../../../components/ReviewSection";
+import pool from "../../../lib/db";
+import { notFound } from "next/navigation";
 
-/* -------------------- Dynamic Metadata -------------------- */
-export async function generateMetadata({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-    const { id } = await params;
+type Product = {
+    id: number;
+    name: string;
+    price: number;
+    category: string;
+    description: string;
+    seller: string;
+    seller_email: string;
+};
 
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/products`,
-        { cache: "no-store" }
-    );
-
-    const products = await res.json();
-    const product = products.find((p: any) => p.id === Number(id));
-
-    if (!product) {
-        return {
-            title: "Product Not Found",
-            description: "This product does not exist.",
-        };
-    }
-
-    return {
-        title: product.name,
-        description: product.description,
-    };
-}
-
-/* -------------------- Page -------------------- */
 export default async function ProductDetailsPage({
     params,
 }: {
@@ -40,40 +22,23 @@ export default async function ProductDetailsPage({
 }) {
     const { id } = await params;
 
-    const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/products`,
-        { cache: "no-store" }
-    );
+    const productId = parseInt(id, 10);
 
-    const products = await res.json();
-    const product = products.find((p: any) => p.id === Number(id));
-
-    if (!product) {
-        return (
-            <main className="min-h-screen bg-[#F8FAFC] text-slate-900">
-                <Navbar />
-                <section className="mx-auto max-w-6xl px-6 py-14">
-                    <h1 className="text-3xl font-bold">Product not found</h1>
-                    <p className="mt-2 text-slate-600">
-                        The product you are looking for does not exist.
-                    </p>
-                </section>
-                <Footer />
-            </main>
-        );
+    // 🔥 Protect against invalid IDs
+    if (isNaN(productId)) {
+        notFound();
     }
 
-    const currentIndex = products.findIndex(
-        (p: any) => p.id === Number(id)
+    const result = await pool.query(
+        "SELECT * FROM products WHERE id = $1",
+        [productId]
     );
 
-    const prevProduct =
-        currentIndex > 0 ? products[currentIndex - 1] : null;
+    if (result.rows.length === 0) {
+        notFound();
+    }
 
-    const nextProduct =
-        currentIndex < products.length - 1
-            ? products[currentIndex + 1]
-            : null;
+    const product: Product = result.rows[0];
 
     return (
         <main className="min-h-screen bg-[#F8FAFC] text-slate-900">
@@ -93,33 +58,8 @@ export default async function ProductDetailsPage({
                     <span className="text-slate-700">{product.name}</span>
                 </nav>
 
-                {/* Prev / Next */}
-                <div className="mt-6 flex justify-between">
-                    {prevProduct ? (
-                        <a
-                            href={`/marketplace/${prevProduct.id}`}
-                            className="text-sm text-emerald-600 hover:underline"
-                        >
-                            ← Previous
-                        </a>
-                    ) : (
-                        <span />
-                    )}
-
-                    {nextProduct ? (
-                        <a
-                            href={`/marketplace/${nextProduct.id}`}
-                            className="text-sm text-emerald-600 hover:underline"
-                        >
-                            Next →
-                        </a>
-                    ) : (
-                        <span />
-                    )}
-                </div>
-
                 <div className="mt-8 grid gap-10 lg:grid-cols-2">
-                    {/* Image */}
+                    {/* Image Placeholder */}
                     <div className="rounded-2xl bg-white p-8 shadow-sm">
                         <div className="flex h-80 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
                             Product Image
@@ -132,40 +72,28 @@ export default async function ProductDetailsPage({
                             {product.category}
                         </p>
 
-                        <h1 className="mt-2 text-3xl font-bold">
-                            {product.name}
-                        </h1>
+                        <h1 className="mt-2 text-3xl font-bold">{product.name}</h1>
 
-                        <p className="mt-4 text-slate-600">
-                            {product.description}
-                        </p>
+                        <p className="mt-4 text-slate-600">{product.description}</p>
 
-                        <p className="mt-6 text-3xl font-bold">
-                            R {product.price}
-                        </p>
+                        <p className="mt-6 text-3xl font-bold">R {product.price}</p>
 
                         <div className="mt-8 flex gap-4">
-                            <button className="rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700">
-                                Add to Cart
-                            </button>
+                            <AddToCartButton productId={product.id} />
 
-                            {product.sellerId && (
-                                <a
-                                    href={`/sellers/${product.sellerId}`}
-                                    className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
-                                >
-                                    View Seller
-                                </a>
-                            )}
+                            <a
+                                href={`/sellers/${encodeURIComponent(product.seller_email)}`}
+                                className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
+                            >
+                                View Seller
+                            </a>
                         </div>
 
                         <div className="mt-10 border-t border-slate-200 pt-6">
                             <h2 className="text-lg font-semibold">Seller</h2>
                             <p className="mt-2 text-slate-600">
                                 Crafted by{" "}
-                                <span className="font-semibold">
-                                    {product.seller || "Independent Artisan"}
-                                </span>
+                                <span className="font-semibold">{product.seller}</span>
                             </p>
                         </div>
                     </div>
@@ -173,10 +101,8 @@ export default async function ProductDetailsPage({
 
                 {/* Reviews */}
                 <div className="mt-10 rounded-2xl bg-white p-8 shadow-sm">
-                    <h2 className="text-xl font-semibold">
-                        Reviews & Ratings
-                    </h2>
-                    <ReviewSection />
+                    <h2 className="text-xl font-semibold">Reviews & Ratings</h2>
+                    <ReviewSection productId={product.id} />
                 </div>
             </section>
 

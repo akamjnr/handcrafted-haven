@@ -1,51 +1,50 @@
 import { NextResponse } from "next/server";
-import { products } from "../../../lib/products";
+import pool from "../../../lib/db";
 
-let allProducts = [...products];
-
+// GET all products
 export async function GET() {
-    return NextResponse.json(allProducts);
-}
-
-export async function POST(req: Request) {
-    const body = await req.json();
-
-    const newProduct = {
-        id: allProducts.length + 1,
-        ...body,
-    };
-
-    allProducts.push(newProduct);
-
-    return NextResponse.json(newProduct);
-}
-
-export async function PUT(req: Request) {
-    const body = await req.json();
-    const { id, name, price, category, description } = body;
-
-    const index = allProducts.findIndex((p) => p.id === id);
-
-    if (index === -1) {
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
+    try {
+        const result = await pool.query(
+            "SELECT * FROM products ORDER BY created_at DESC"
+        );
+        return NextResponse.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
     }
-
-    allProducts[index] = {
-        ...allProducts[index],
-        name,
-        price,
-        category,
-        description,
-    };
-
-    return NextResponse.json(allProducts[index]);
 }
 
+// POST new product
+export async function POST(req: Request) {
+    try {
+        const body = await req.json();
+        const { name, price, category, description, seller, sellerId } = body;
+
+        const result = await pool.query(
+            `INSERT INTO products (name, price, category, description, seller, seller_email)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
+            [name, price, category, description, seller, sellerId]
+        );
+
+        return NextResponse.json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
+    }
+}
+
+// DELETE product
 export async function DELETE(req: Request) {
-    const body = await req.json();
-    const { id } = body;
+    try {
+        const body = await req.json();
+        const { id } = body;
 
-    allProducts = allProducts.filter((p) => p.id !== id);
+        await pool.query("DELETE FROM products WHERE id = $1", [id]);
 
-    return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
+    }
 }

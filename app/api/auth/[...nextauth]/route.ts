@@ -10,7 +10,7 @@ const handler = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
-                // Temporary demo user (replace with DB later)
+                // Temporary demo user
                 if (
                     credentials?.email === "seller@example.com" &&
                     credentials?.password === "password123"
@@ -27,9 +27,15 @@ const handler = NextAuth({
             },
         }),
     ],
+
     session: {
         strategy: "jwt",
     },
+
+    pages: {
+        signIn: "/login", // 🔥 THIS is what replaces the ugly default page
+    },
+
     secret: process.env.NEXTAUTH_SECRET,
 });
 

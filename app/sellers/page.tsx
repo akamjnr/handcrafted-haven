@@ -1,41 +1,19 @@
-import type { Metadata } from "next";
 import Navbar from "../../components/navbar";
 import Footer from "../../components/footer";
+import pool from "../../lib/db";
 
-export const metadata: Metadata = {
-  title: "Sellers",
-  description:
-    "Meet the talented artisans behind the handcrafted products on Handcrafted Haven.",
+type Seller = {
+  name: string;
+  email: string;
 };
 
-const sellers = [
-  {
-    id: 1,
-    name: "Milly Handmade Studio",
-    location: "Cape Town, South Africa",
-    specialty: "Jewelry & Accessories",
-  },
-  {
-    id: 2,
-    name: "Kaya Craft Works",
-    location: "Johannesburg, South Africa",
-    specialty: "Home Decor",
-  },
-  {
-    id: 3,
-    name: "Ink & Thread Studio",
-    location: "Durban, South Africa",
-    specialty: "Art Prints",
-  },
-  {
-    id: 4,
-    name: "Sage & Bloom Naturals",
-    location: "Pretoria, South Africa",
-    specialty: "Natural Skincare",
-  },
-];
+export default async function SellersPage() {
+  const result = await pool.query(
+    "SELECT DISTINCT seller AS name, seller_email AS email FROM products WHERE seller_email IS NOT NULL"
+  );
 
-export default function SellersPage() {
+  const sellers: Seller[] = result.rows;
+
   return (
     <main className="min-h-screen bg-[#F8FAFC] text-slate-900">
       <Navbar />
@@ -55,37 +33,33 @@ export default function SellersPage() {
           Meet the talented artisans behind the handcrafted items.
         </p>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {sellers.map((seller) => (
-            <div
-              key={seller.id}
-              className="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
-            >
-              <h2 className="text-lg font-semibold">{seller.name}</h2>
-
-              <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-700">
-                  Location:
-                </span>{" "}
-                {seller.location}
-              </p>
-
-              <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-700">
-                  Specialty:
-                </span>{" "}
-                {seller.specialty}
-              </p>
-
-              <a
-                href={`/sellers/${seller.id}`}
-                className="mt-6 block w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-700"
+        {sellers.length === 0 ? (
+          <p className="mt-10 text-slate-600">
+            No sellers available yet.
+          </p>
+        ) : (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {sellers.map((seller) => (
+              <div
+                key={seller.email}
+                className="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
               >
-                View Seller Profile
-              </a>
-            </div>
-          ))}
-        </div>
+                <h2 className="text-lg font-semibold">{seller.name}</h2>
+
+                <p className="mt-2 text-sm text-slate-600">
+                  Verified artisan seller
+                </p>
+
+                <a
+                  href={`/sellers/${encodeURIComponent(seller.email)}`}
+                  className="mt-6 block w-full rounded-xl bg-emerald-600 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  View Seller Profile
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <Footer />
