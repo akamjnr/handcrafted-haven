@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Navbar from "../../components/navbar";
 import Footer from "../../components/footer";
+
+export const metadata: Metadata = {
+  title: "Sellers",
+  description:
+    "Meet the talented artisans behind the handcrafted products on Handcrafted Haven.",
+};
 
 const sellers = [
   {
@@ -57,12 +64,16 @@ export default function SellersPage() {
               <h2 className="text-lg font-semibold">{seller.name}</h2>
 
               <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-700">Location:</span>{" "}
+                <span className="font-medium text-slate-700">
+                  Location:
+                </span>{" "}
                 {seller.location}
               </p>
 
               <p className="mt-2 text-sm text-slate-600">
-                <span className="font-medium text-slate-700">Specialty:</span>{" "}
+                <span className="font-medium text-slate-700">
+                  Specialty:
+                </span>{" "}
                 {seller.specialty}
               </p>
 
